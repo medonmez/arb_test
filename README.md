@@ -1,78 +1,74 @@
-# Kripto Arbitraj Telegram Botu PRD
+# Crypto Arbitrage Telegram Bot
 
-## Proje Özeti
-Bu bot, Bitci ve Binance borsaları arasındaki fiyat farklarını takip ederek arbitraj fırsatlarını tespit eder ve Telegram kanalı üzerinden kullanıcıları bilgilendirir.
+## Project Summary
+This bot detects arbitrage opportunities by tracking price differences between Bitci and Binance exchanges and informs users via a Telegram channel.
 
-## Temel Özellikler
+## Key Features
 
-### 1. Veri Toplama
-- Bitci API'sinden kripto para çiftlerinin fiyat verilerini çekme
-- Binance API'sinden aynı kripto para çiftlerinin fiyat verilerini çekme
-- Her iki borsadan veri çekme işlemi belirli aralıklarla (örn: 1 dakika) tekrarlanacak
+### 1. Data Collection
+- Fetching cryptocurrency pair price data from the Bitci API
+- Fetching the same cryptocurrency pair price data from the Binance API
+- Data fetching from both exchanges will be repeated at specific intervals (e.g., every 1 minute)
 
-### 2. Veri İşleme
-- İki borsa arasındaki fiyat farklarının hesaplanması
-- Belirli bir yüzdenin (örn: %1.5) üzerindeki farkların tespit edilmesi
-- İşlem hacmi kontrolü
+### 2. Data Processing
+- Calculating the price differences between the two exchanges
+- Detecting differences above a certain percentage (e.g., 1.5%)
 
-### 3. Telegram Entegrasyonu
-- Tespit edilen arbitraj fırsatlarının Telegram kanalına otomatik mesaj olarak gönderilmesi
-- Mesaj formatı:
+### 3. Telegram Integration
+- Automatically sending detected arbitrage opportunities as messages to the Telegram channel
+- Message format:
   ```
-  🔄 Arbitraj Fırsatı
-  Çift: BTC/USDT
+  🔄 Arbitrage Opportunity
+  Pair: BTC/USDT
   Bitci: 65,000 USDT
   Binance: 64,000 USDT
-  Fark: %1.56 ⬆️
-  Tarih: 12.03.2024 14:30
+  Difference: %1.56 ⬆️
+  Date: 12.03.2024 14:30
   ```
 
-## Teknik Gereksinimler
-- Python programlama dili
-- python-telegram-bot kütüphanesi
-- requests kütüphanesi (API istekleri için)
-- Sürekli çalışan bir sunucu veya host
+## Technical Requirements
+- python-telegram-bot library
+- requests library (for API requests)
+- A continuously running server or host
 
-## Güvenlik
-- API anahtarları ve token'lar environment variables olarak saklanacak
-- Rate limiting kurallarına uyulacak
-- Hata yönetimi ve loglama sistemi
+## Security
+- API keys and tokens will be stored as environment variables
+- Rate limiting rules will be followed
+- Error handling and logging system
 
-## Gelecek Geliştirmeler
-- Daha fazla borsa eklenmesi
-- Minimum fark yüzdesinin ayarlanabilmesi
-- Özel kripto para çiftlerinin takibi
-- Anlık fiyat sorgulama komutları
+## Future Developments
+- Adding more exchange markets
+- Tracking specific cryptocurrency pairs
 
-## Kurulum
+## Installation
 
-### 1. Virtual Environment Oluşturma
+### 1. Creating a Virtual Environment
 ```bash
-# Virtual environment oluştur
+# Create a virtual environment
 python -m venv venv
 
-# Windows'ta aktive etme
+# Activate on Windows
 venv\Scripts\activate
 
-# Linux/Mac'te aktive etme
+# Activate on Linux/Mac
 source venv/bin/activate
 ```
 
-### 2. Gerekli Paketlerin Kurulumu
+### 2. Installing Required Packages
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Environment Variables Ayarlama
-- `.env.example` dosyasını `.env` olarak kopyalayın
-- `.env` dosyasındaki değişkenleri kendi değerlerinizle güncelleyin
+### 3. Setting Up Environment Variables
+- Copy the `.env.example` file to `.env`
+- Update the variables in the `.env` file with your own values
 
-### 4. Botu Çalıştırma
+### 4. Running the Bot
 ```bash
 python main.py
 ```
 
-### 5. Sunucuda Sürekli Çalıştırma (Linux)
+### 5. Running Continuously on Server (Linux)
 ```bash
 nohup python main.py &
 ``` 

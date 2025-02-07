@@ -12,26 +12,32 @@ load_dotenv(override=True)  # Force reload
 # Telegram bot token'ı
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 CHANNEL_ID = os.getenv('TELEGRAM_CHANNEL_ID')
+CHANNEL_ID_2 = os.getenv('TELEGRAM_CHANNEL_ID_2')  # İkinci kanal ID'si
 
 # Bot ayarları
 raw_value = os.getenv('MIN_ARBITRAGE_PERCENTAGE')
 print(f"Raw value from .env: '{raw_value}'")
 MIN_DIFFERENCE = float(raw_value)
+NORMALIZATION_THRESHOLD = float(os.getenv('NORMALIZATION_THRESHOLD'))
 CHECK_INTERVAL = int(os.getenv('CHECK_INTERVAL'))
 
-def send_telegram_message(message: str) -> bool:
+# Fark durumu için flag
+high_difference_active = False
+
+def send_telegram_message(message: str, channel_id: str = CHANNEL_ID) -> bool:
     """
     Telegram'a mesaj gönderir
     
     Args:
         message: Gönderilecek mesaj
+        channel_id: Mesajın gönderileceği kanal ID'si
     
     Returns:
         bool: Mesaj başarıyla gönderildiyse True
     """
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
     data = {
-        "chat_id": str(CHANNEL_ID),
+        "chat_id": str(channel_id),
         "text": message,
         "parse_mode": "MarkdownV2",  # Markdown formatını kullan
         "disable_web_page_preview": True,  # Link önizlemesini kapat
@@ -51,6 +57,7 @@ def send_telegram_message(message: str) -> bool:
 
 def check_prices():
     """Fiyatları kontrol eder ve arbitraj fırsatı varsa kanal'a mesaj gönderir"""
+    global high_difference_active
     data = get_comparison_data()
     
     if data["success"]:
@@ -58,7 +65,7 @@ def check_prices():
         
         # Fark minimum değerin üzerindeyse bildir
         if abs_diff >= MIN_DIFFERENCE:
-            # Markdown için özel karakterleri escape et
+            # Ana kanala arbitraj fırsatını bildir
             message = (
                 "🔔 *Arbitraj Fırsatı* 💰\n\n"
                 f"💱 Çift: `{PAR_1}/{PAR_2}`\n"
@@ -75,6 +82,27 @@ def check_prices():
                 print(f"✅ Mesaj gönderildi - Fark: %{abs_diff:.2f}")
             else:
                 print("❌ Mesaj gönderilemedi")
+            
+            high_difference_active = True
+            
+        # Eğer fark normalizasyon eşiğinin altına düştüyse ve önceden yüksek fark varsa
+        elif abs_diff < NORMALIZATION_THRESHOLD and high_difference_active:
+            notification = (
+                "🔄 *Fark Normalleşti* ⚖️\n\n"
+                f"💱 Çift: `{PAR_1}/{PAR_2}`\n"
+                f"📊 Güncel Fark: `%{abs_diff:.2f}`\n"
+                f"⏰ Tarih: `{datetime.now().strftime('%d.%m.%Y %H:%M')}`"
+            )
+            
+            # Markdown için özel karakterleri escape et
+            notification = notification.replace('.', '\\.').replace('-', '\\-').replace('_', '\\_')
+            
+            if send_telegram_message(notification, CHANNEL_ID_2):
+                print(f"✅ Normalleşme bildirimi gönderildi - Fark: %{abs_diff:.2f}")
+            else:
+                print("❌ Normalleşme bildirimi gönderilemedi")
+            
+            high_difference_active = False
 
 def test_telegram_connection():
     """Telegram bağlantısını test eder"""
@@ -92,7 +120,7 @@ def main():
     # Gerekli çevre değişkenlerini kontrol et
     required_vars = ['TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHANNEL_ID', 
                     'PAR_1', 'PAR_2', 
-                    'MIN_ARBITRAGE_PERCENTAGE', 'CHECK_INTERVAL']
+                    'MIN_ARBITRAGE_PERCENTAGE', 'NORMALIZATION_THRESHOLD', 'CHECK_INTERVAL']
     
     missing_vars = [var for var in required_vars if not os.getenv(var)]
     if missing_vars:
@@ -103,6 +131,7 @@ def main():
     
     print("🤖 Bot başlatılıyor...")
     print(f"📊 Minimum fark: %{MIN_DIFFERENCE}")
+    print(f"📉 Normalleşme eşiği: %{NORMALIZATION_THRESHOLD}")
     print(f"⏱️ Kontrol aralığı: {CHECK_INTERVAL} saniye")
     
     while True:
